@@ -68,6 +68,10 @@ No build process or dependencies required!
 4. **Don't panic** - smooth, erratic movement is key
 5. **Time management** - stopping blends you in, but costs precious seconds
 
+## Demo
+
+![alt text](<Recording 2025-11-19 172338.gif>)
+---
 ## Credits
 
 Created for OSWeek-IEEECS  

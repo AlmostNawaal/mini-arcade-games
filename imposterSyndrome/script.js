@@ -7,9 +7,33 @@ const TOTAL_CIRCLES = 50;
 const BOT_SPEED = 1.5;
 const PLAYER_SPEED = 2;
 const GAME_TIME = 60; // seconds
-const DETECTION_THRESHOLD = 0.25; // How "straight" movement triggers detection
 const MOVEMENT_HISTORY_SIZE = 20; // Frames to analyze for straight movement
 const GREEN_ZONE_RADIUS = 80;
+
+// Difficulty levels
+const DIFFICULTY_LEVELS = {
+    EASY: {
+        name: 'EASY',
+        threshold: 0.05, // Very lenient - allows straighter lines
+        warningRate: 0.04,
+        decayRate: 0.05
+    },
+    MEDIUM: {
+        name: 'MEDIUM',
+        threshold: 0.25, // Default difficulty
+        warningRate: 0.08,
+        decayRate: 0.03
+    },
+    HARD: {
+        name: 'HARD',
+        threshold: 0.6, // Strict - detects even slight straight patterns
+        warningRate: 0.12,
+        decayRate: 0.02
+    }
+};
+
+let CURRENT_DIFFICULTY = DIFFICULTY_LEVELS.MEDIUM;
+let DETECTION_THRESHOLD = CURRENT_DIFFICULTY.threshold;
 
 // Game state
 let canvas, ctx;
@@ -145,7 +169,7 @@ function init() {
     canvas.height = CANVAS_HEIGHT;
 
     // Event listeners
-    document.getElementById('start-btn').addEventListener('click', startGame);
+    document.getElementById('start-btn').addEventListener('click', showDifficultyMenu);
     document.getElementById('restart-btn').addEventListener('click', restartGame);
 
     document.addEventListener('keydown', (e) => {
@@ -154,6 +178,41 @@ function init() {
 
     document.addEventListener('keyup', (e) => {
         keys[e.key] = false;
+    });
+}
+
+function showDifficultyMenu() {
+    const instructionsOverlay = document.getElementById('instructions');
+    const instructionsContent = document.querySelector('.overlay-content');
+    
+    // Replace content with difficulty selector
+    instructionsContent.innerHTML = `
+        <h1>SELECT DIFFICULTY</h1>
+        <p class="tagline">Choose your challenge level</p>
+        <div style="display: flex; gap: 20px; justify-content: center; margin: 40px 0;">
+            <button class="difficulty-btn" data-difficulty="EASY">
+                <div style="font-size: 24px; font-weight: bold;">EASY</div>
+                <div style="font-size: 12px; margin-top: 10px;">Lenient detection</div>
+            </button>
+            <button class="difficulty-btn" data-difficulty="MEDIUM">
+                <div style="font-size: 24px; font-weight: bold;">MEDIUM</div>
+                <div style="font-size: 12px; margin-top: 10px;">Balanced challenge</div>
+            </button>
+            <button class="difficulty-btn" data-difficulty="HARD">
+                <div style="font-size: 24px; font-weight: bold;">HARD</div>
+                <div style="font-size: 12px; margin-top: 10px;">Strict detection</div>
+            </button>
+        </div>
+    `;
+
+    // Add event listeners to difficulty buttons
+    document.querySelectorAll('.difficulty-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const difficultyName = e.currentTarget.dataset.difficulty;
+            CURRENT_DIFFICULTY = DIFFICULTY_LEVELS[difficultyName];
+            DETECTION_THRESHOLD = CURRENT_DIFFICULTY.threshold;
+            startGame();
+        });
     });
 }
 
@@ -226,6 +285,9 @@ function gameLoop() {
 
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+    // Draw difficulty indicator
+    drawDifficultyIndicator();
+
     // Draw green zone
     drawGreenZone();
 
@@ -243,6 +305,13 @@ function gameLoop() {
     checkVictory();
 
     requestAnimationFrame(gameLoop);
+}
+
+function drawDifficultyIndicator() {
+    ctx.fillStyle = '#fff';
+    ctx.font = '14px Courier New';
+    ctx.textAlign = 'left';
+    ctx.fillText(`Difficulty: ${CURRENT_DIFFICULTY.name}`, 20, 30);
 }
 
 function drawGreenZone() {
@@ -323,7 +392,7 @@ function drawEye() {
 
 function checkDetection() {
     if (movementHistory.length < 10) {
-        detectionWarningLevel = Math.max(0, detectionWarningLevel - 0.02);
+        detectionWarningLevel = Math.max(0, detectionWarningLevel - CURRENT_DIFFICULTY.decayRate);
         return;
     }
 
@@ -344,7 +413,7 @@ function checkDetection() {
     }
 
     if (angles.length < 3) {
-        detectionWarningLevel = Math.max(0, detectionWarningLevel - 0.02);
+        detectionWarningLevel = Math.max(0, detectionWarningLevel - CURRENT_DIFFICULTY.decayRate);
         return;
     }
 
@@ -363,17 +432,17 @@ function checkDetection() {
 
     // Low variance = straight line = human-like = detected!
     if (variance < DETECTION_THRESHOLD) {
-        detectionWarningLevel = Math.min(1, detectionWarningLevel + 0.08);
+        detectionWarningLevel = Math.min(1, detectionWarningLevel + CURRENT_DIFFICULTY.warningRate);
         
         if (detectionWarningLevel > 0.5) {
-            updateStatus('âš ï¸ THE EYE IS WATCHING YOU...');
+            updateStatus('⚠️ THE EYE IS WATCHING YOU...');
         }
         
         if (detectionWarningLevel >= 1) {
             endGame(false, 'The Eye detected your human movement!');
         }
     } else {
-        detectionWarningLevel = Math.max(0, detectionWarningLevel - 0.03);
+        detectionWarningLevel = Math.max(0, detectionWarningLevel - CURRENT_DIFFICULTY.decayRate);
         if (detectionWarningLevel < 0.3) {
             updateStatus('Blend in and reach the Green Zone!');
         }
@@ -423,7 +492,12 @@ function restartGame() {
     document.getElementById('game-over').classList.add('hidden');
     canvas.style.borderColor = '#333';
     document.getElementById('timer').style.color = '#00ff88';
-    startGame();
+    
+    // Show instructions overlay and populate with difficulty menu
+    const instructionsOverlay = document.getElementById('instructions');
+    instructionsOverlay.classList.remove('hidden');
+    
+    showDifficultyMenu();
 }
 
 // Initialize on load
