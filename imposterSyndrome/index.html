@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imposter Syndrome - Reverse Turing Test</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="hud">
+            <div id="timer">Time: <span id="time-left">60</span>s</div>
+            <div id="status">Blend in and reach the Green Zone!</div>
+        </div>
+        
+        <div id="instructions" class="overlay">
+            <div class="overlay-content">
+                <h1>IMPOSTER SYNDROME</h1>
+                <p class="tagline">A Reverse Turing Test</p>
+                <div class="instructions-text">
+                    <p><strong>You are one of 50 identical circles.</strong></p>
+                    <p>49 are AI bots moving randomly. 1 is YOU.</p>
+                    <p><strong>The Eye is watching.</strong></p>
+                    <p>If you move like a human (straight lines), it will detect and zap you.</p>
+                    <p><strong>Your Mission:</strong> Reach the Green Zone in 60 seconds.</p>
+                    <p><strong>How to Survive:</strong></p>
+                    <ul>
+                        <li>Move with WASD or Arrow Keys</li>
+                        <li>Mimic the bots' erratic, jittery movement</li>
+                        <li>Stop moving to blend in (but don't waste time!)</li>
+                        <li>Avoid straight lines at all costs</li>
+                    </ul>
+                </div>
+                <button id="start-btn">START GAME</button>
+            </div>
+        </div>
+        
+        <div id="game-over" class="overlay hidden">
+            <div class="overlay-content">
+                <h1 id="result-title">DETECTED!</h1>
+                <p id="result-message">The Eye saw through your disguise.</p>
+                <button id="restart-btn">TRY AGAIN</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
